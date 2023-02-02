@@ -5,9 +5,9 @@
 
 #define h 0.01
 
-#define lambda 0.1
+#define lambda 0.5
 
-__global__ void kuramoto(double *A, double *theta, double *w, 
+__global__ void kuramoto(int *A, double *theta, double *w, 
 				double *k, double *prevk, int N, int iter, double adder) {
 	int id = threadIdx.x;
 	
@@ -19,7 +19,8 @@ __global__ void kuramoto(double *A, double *theta, double *w,
 }
 
 __global__ void update_theta(double *theta, double *k1, double *k2, double *k3, double *k4, int iter, int N) {
-	theta[(iter+1)*N + threadIdx.x] = theta[iter*N + threadIdx.x] + (double)(h * (k1 + 2*k2 + 2*k3 + k4)) / 6;
+	int id = threadIdx.x;
+	theta[(iter+1)*N + id] = theta[iter*N + id] + (double)(h * (k1[id] + 2*k2[id] + 2*k3[id] + k4[id])) / 6;
 }
 
 int main() {
@@ -33,29 +34,31 @@ int main() {
 	
 	double ph, ff;
 	
-	unsigned float t = 0;
+	float t = 0;
 	
 	do {
 		ff = fscanf(fptr_2, "%lf", &ph);
 		N++;
-	} while(ff != EOF)
+	} while(ff != EOF);
 	
 	double *theta, *dtheta;
+	
 	theta = (double *)malloc(N * 10000 * sizeof(double));
 	cudaMalloc(&dtheta, N * 10000 * sizeof(double));
 	
 	for(int i = 0; i < N; i++) {
-		fscanf(fptr_2, "%lf", theta[i]);
+		fscanf(fptr_2, "%lf", &theta[i]);
 	}
 	
 	cudaMemcpy(dtheta, theta, N * 10000 * sizeof(double), cudaMemcpyHostToDevice);
 	
 	int *A, *dA;
 	A = (int *)malloc(N * N * sizeof(int));
+	cudaMalloc(&dA, N * N * sizeof(int));
 	
 	for(int i = 0; i < N; i++) {
 		for(int j = 0; j < N; j++) {
-			fscanf(fptr_1, "%d", A[i*N + j]);
+			fscanf(fptr_1, "%d", &A[i*N + j]);
 		}
 	}
 	
@@ -63,11 +66,14 @@ int main() {
 	
 	double *omega, *domega;
 	
+	omega = (double*) malloc(N * sizeof(double));
+	cudaMalloc(&domega, N * sizeof(double));
+	
 	for(int i = 0; i < N; i++) {
-		fscanf(fptr_3, "%lf", omega[i]);
+		fscanf(fptr_3, "%lf", &omega[i]);
 	}
 	
-	cudaMemcpy(domega, omega, N * sizeof(double));
+	cudaMemcpy(domega, omega, N * sizeof(double), cudaMemcpyHostToDevice);
 	
 	int iter = 0;
 	
@@ -94,6 +100,10 @@ int main() {
 	}
 	
 	cudaMemcpy(theta, dtheta, N * 10000 * sizeof(double), cudaMemcpyDeviceToHost);
+	
+	for(int i = 0; i < N; i++) {
+		printf("%lf ", theta[9900 + i]);
+	}
 	
 	fclose(fptr_1);
 	fclose(fptr_2);
