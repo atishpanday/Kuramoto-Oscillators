@@ -41,6 +41,10 @@ int main() {
 		N++;
 	} while(ff != EOF);
 	
+	N--;
+	
+	printf("count = %d\n", N);
+	
 	double *theta, *dtheta;
 	
 	theta = (double *)malloc(N * 10000 * sizeof(double));
@@ -48,6 +52,10 @@ int main() {
 	
 	for(int i = 0; i < N; i++) {
 		fscanf(fptr_2, "%lf", &theta[i]);
+	}
+	
+	for(int i = 0; i < N; i++) {
+		printf("%lf ", theta[i]);
 	}
 	
 	cudaMemcpy(dtheta, theta, N * 10000 * sizeof(double), cudaMemcpyHostToDevice);
@@ -85,14 +93,19 @@ int main() {
 	
 	while(t < 100) {
 		kuramoto<<<1, N>>>(dA, dtheta, domega, dk1, NULL, N, iter, 0);
+		cudaDeviceSynchronize();
 		
 		kuramoto<<<1, N>>>(dA, dtheta, domega, dk2, dk1, N, iter, h/2);
+		cudaDeviceSynchronize();
 		
 		kuramoto<<<1, N>>>(dA, dtheta, domega, dk3, dk2, N, iter, h/2);
+		cudaDeviceSynchronize();
 		
 		kuramoto<<<1, N>>>(dA, dtheta, domega, dk4, dk3, N, iter, h);
+		cudaDeviceSynchronize();
 		
 		update_theta<<<1, N>>>(dtheta, dk1, dk2, dk3, dk4, iter, N);
+		cudaDeviceSynchronize();
 		
 		t += h;
 		
@@ -102,7 +115,7 @@ int main() {
 	cudaMemcpy(theta, dtheta, N * 10000 * sizeof(double), cudaMemcpyDeviceToHost);
 	
 	for(int i = 0; i < N; i++) {
-		printf("%lf ", theta[9900 + i]);
+		printf("%lf ", theta[i]);
 	}
 	
 	fclose(fptr_1);
