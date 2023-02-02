@@ -5,7 +5,7 @@
 
 #define h 0.01
 
-#define lambda 0.8
+#define lambda 0.001
 
 __global__ void kuramoto(int *A, double *theta, double *w, double *k, double *prevk, int N, int iter, double adder) {
 	int id = threadIdx.x;
@@ -40,6 +40,9 @@ int main() {
 	double *theta, *dtheta;
 	double *omega, *domega;
 	double *k0, *dk0, *dk1, *dk2, *dk3, *dk4;
+	double *r;
+	
+	double c = 0, s = 0;
 	
 	int N = 10;
 
@@ -53,6 +56,16 @@ int main() {
 	
 	omega = (double*)malloc(N * sizeof(double));
 	cudaMalloc(&domega, N * sizeof(double));
+	
+	r = (double*)malloc(10000 * sizeof(double));
+	
+	for(int i = 0; i < N; i++) {
+		c += cos(theta[i]);
+		s += sin(theta[i]);
+	}
+	r[0] = sqrt(c*c + s*s) / N;
+	c = 0;
+	s = 0;
 	
 	cudaMalloc(&dk0, N*sizeof(double));
 	cudaMalloc(&dk1, N*sizeof(double));
@@ -110,6 +123,14 @@ int main() {
 		t += h;
 		
 		iter++;
+		
+		for(int i = 0; i < N; i++) {
+			c += cos(theta[iter*N + i]);
+			s += sin(theta[iter*N + i]);
+		}
+		r[iter] = sqrt(c*c + s*s) / N;
+		c = 0;
+		s = 0;
 	}
 	
 	cudaMemcpy(theta, dtheta, N * 10000 * sizeof(double), cudaMemcpyDeviceToHost);
@@ -118,12 +139,20 @@ int main() {
 		printf("%lf ", theta[9900 + i]);
 	}
 	
+	FILE *fptr_4;
+	
+	fptr_4 = fopen("./order_par.txt", "w");
+	
+	for(int i = 0; i < 10000; i++) {
+		fprintf(fptr_4, "%lf ", r[i]);
+	}
+	
 	printf("\n");
 	
 	fclose(fptr_1);
 	fclose(fptr_2);
 	fclose(fptr_3);
-	
+	fclose(fptr_4);
 	return 0;
 }
 
