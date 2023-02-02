@@ -7,23 +7,19 @@
 
 #define lambda 0.8
 
-__global__ void kuramoto(int *A, double *theta, double *w, 
-				double *k, double *prevk, int N, int iter, double adder) {
+__global__ void kuramoto(int *A, double *theta, double *w, double *k, double *prevk, int N, int iter, double adder) {
 	int id = threadIdx.x;
 	
 	k[id] = w[id];
 	
 	for(int i = 0; i < N; i++) {
-		k[id] += lambda * A[i*N + id] * sin(theta[iter*N + i] - (theta[iter*N + id] + 
-									(adder * prevk[i])));
+		k[id] += lambda * A[i*N + id] * sin(theta[iter*N + i] - (theta[iter*N + id] + (adder * prevk[i])));
 	}
 }
 
-__global__ void update_theta(double *theta, double *k1, double *k2, 
-					double *k3, double *k4, int iter, int N) {
+__global__ void update_theta(double *theta, double *k1, double *k2, double *k3, double *k4, int iter, int N) {
 	int id = threadIdx.x;
-	theta[(iter+1)*N + id] = theta[iter*N + id] + 
-				(double)(h * (k1[id] + 2*k2[id] + 2*k3[id] + k4[id])) / 6;
+	theta[(iter+1)*N + id] = theta[iter*N + id] + (double)(h * (k1[id] + 2*k2[id] + 2*k3[id] + k4[id])) / 6;
 				
 	while(theta[(iter+1)*N + id] > M_PI) {
 		theta[(iter+1)*N + id] = 2 * M_PI - theta[(iter+1)*N + id];
