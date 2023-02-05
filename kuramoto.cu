@@ -153,6 +153,21 @@ int main() {
 	fclose(fptr_2);
 	fclose(fptr_3);
 	fclose(fptr_4);
+	
+	free(A);
+	free(theta);
+	free(omega);
+	free(r);
+	free(k0);
+	
+	cudaFree(dA);
+	cudaFree(dtheta);
+	cudaFree(domega);
+	cudaFree(dk0);
+	cudaFree(dk1);
+	cudaFree(dk2);
+	cudaFree(dk3);
+	cudaFree(dk4);
 	return 0;
 }
 
