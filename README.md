@@ -1,22 +1,26 @@
-kuramoto oscillators
+# kuramoto oscillators
 
-equation:
+### Equation:
+
+```math	
+	\frac{d(\theta_i)}{dt} = w_i + lambda*\sum_{j = 1}^{N} A_ij \sin(\theta_j - \theta_i)
+```
 	
-	d(theta[i])/dt = w[i] + lambda * sum( A[i][j] * sin(theta[j] - theta[i])
+Solving the above using rk4 method:
+
+Let `$df_i = d(\theta_i)/dt = f(\theta_i)$`
 	
-	solving the above using rk4 method:
+Then,
+
+```math
+	k_1 = f(\theta_i)$
 	
-	let df[i] = d(theta[i])/dt = f(theta[i]);
+	k_2 = f(\theta_i + h*\frac{k_1}{2})
 	
-	then k1 = f(theta[i]);
+	k_3 = f(\theta_i + h*\frac{k_2}{2})
 	
-	and k2 = f(theta[i] + h*k1/2)
+	k_4 = f(\theta_i + h*k_3)
+```
 	
-	k3 = f(theta[i] + h*k2/2)
-	
-	k4 = f(theta[i] + h*k3)
-	
-	then we can find theta[i + 1] using the following formula:
-	
-	theta[i+1] = theta[i] + h*(k1 + 2*k2 + 2*k3 + k4) / 6
+Then we can find `$\theta_{i + 1}$` using the following formula: `$\theta_{i+1} = \theta_i + h*(k_1 + 2*k_2 + 2*k_3 + k_4) / 6$`
 
